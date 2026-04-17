@@ -13,6 +13,8 @@ class UtilityConfig:
     def __init__(self) -> None:
         self.openai_api_key: str = os.getenv("OPENAI_API_KEY", "")
         self.openai_model: str = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+        self.azure_openai_endpoint: str = os.getenv("AZURE_OPENAI_ENDPOINT", "")
+        self.azure_openai_api_version: str = os.getenv("AZURE_OPENAI_API_VERSION", "2024-02-01")
 
         self.db_host: str = os.getenv("DB_HOST", "localhost")
         self.db_user: str = os.getenv("DB_USER", "appuser")

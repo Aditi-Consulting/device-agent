@@ -6,7 +6,7 @@ import json
 import logging
 import re
 
-from langchain_openai import ChatOpenAI
+from langchain_openai import AzureChatOpenAI, ChatOpenAI
 
 from src.device_agent.utility.config import utility_config
 
@@ -14,13 +14,16 @@ logger = logging.getLogger(__name__)
 
 
 def get_llm(temperature: float = 0.0) -> ChatOpenAI:
-    """Return a configured ChatOpenAI instance.
+    """Return a configured ChatOpenAI or AzureChatOpenAI instance.
+
+    Uses AzureChatOpenAI if AZURE_OPENAI_ENDPOINT is set in the environment,
+    otherwise falls back to standard ChatOpenAI.
 
     Args:
         temperature: Sampling temperature. 0.0 for deterministic output.
 
     Returns:
-        A ChatOpenAI instance ready to invoke.
+        A ChatOpenAI (or AzureChatOpenAI) instance ready to invoke.
 
     Raises:
         ValueError: If OPENAI_API_KEY is not set.
@@ -28,8 +31,17 @@ def get_llm(temperature: float = 0.0) -> ChatOpenAI:
     if not utility_config.openai_api_key:
         raise ValueError("OPENAI_API_KEY is not set in environment.")
 
-    logger.debug("Initialising LLM model: %s", utility_config.openai_model)
+    if utility_config.azure_openai_endpoint:
+        logger.debug("Initialising Azure LLM deployment: %s", utility_config.openai_model)
+        return AzureChatOpenAI(
+            azure_deployment=utility_config.openai_model,
+            azure_endpoint=utility_config.azure_openai_endpoint,
+            api_version=utility_config.azure_openai_api_version,
+            api_key=utility_config.openai_api_key,
+            temperature=temperature,
+        )
 
+    logger.debug("Initialising LLM model: %s", utility_config.openai_model)
     return ChatOpenAI(
         model=utility_config.openai_model,
         temperature=temperature,
